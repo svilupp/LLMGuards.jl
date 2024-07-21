@@ -80,6 +80,10 @@ function detect_line_changes(lines::AbstractVector{<:AbstractString})
         if startswith(line, "+ ")
             line = replace(line, r"^\+ " => "")
             push!(marked_lines, (line, ADD))
+        elseif strip(line) == "+"
+            push!(marked_lines, ("", ADD))
+        elseif strip(line) == "-"
+            push!(marked_lines, ("", REMOVE))
         elseif startswith(line, "- ")
             line = replace(line, r"^\- " => "")
             push!(marked_lines, (line, REMOVE))
@@ -94,6 +98,7 @@ end
 # Example usage
 lines = [
     "+ Added line",
+    "+",
     "- Removed line",
     " Unchanged line"
 ]
