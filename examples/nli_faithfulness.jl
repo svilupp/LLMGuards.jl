@@ -7,7 +7,7 @@ tpl = PT.create_template(;
 You mark summary sentences as Entailment (E), Contradiction (C), or Neutral (N) depending on the relationship between the summary sentence and the text passage.
 Each summary sentence is marked with E, C, or N based on its relationship to the text.
 
-### Instructions:
+### Instructions
 
 1. Task Overview:
     You will be presented with a summary sentence and a longer text passage. Your job is to determine the relationship between the summary sentence and the text passage.
@@ -54,7 +54,7 @@ Judgement: N
     user = """
 Text: {{text}}
 Summary: {{summary}}
-Judgement: 
+Judgement:
 """)
 
 text = """
