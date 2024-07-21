@@ -3,7 +3,7 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://svilupp.github.io/LLMGuards.jl/dev/) [![Build Status](https://github.com/svilupp/LLMGuards.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/svilupp/LLMGuards.jl/actions/workflows/CI.yml?query=branch%3Amain) [![Coverage](https://codecov.io/gh/svilupp/LLMGuards.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/svilupp/LLMGuards.jl) [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 > [!WARNING]
-> This package is in an experimental stage and under development.
+> This package is in an EXPERIMENTAL stage and under development.
 >
 
 LLMGuards.jl is a Julia package designed to make it easy to integrate Large Language Models (LLMs) into bigger systems by detecting, evaluating, and guarding against bad data and behaviors.
@@ -23,6 +23,8 @@ To install LLMGuards.jl, use the Julia package manager:
 using Pkg
 Pkg.add(url="https://github.com/svilupp/LLMGuards.jl")
 ```
+
+Note that this package is EXPERIMENTAL and under development.
 
 ## Quick Start
 

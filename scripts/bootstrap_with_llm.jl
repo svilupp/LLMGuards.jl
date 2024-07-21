@@ -4,6 +4,7 @@ using PromptingTools
 const PT = PromptingTools
 include("diff_utils.jl")
 
+# # Set Up
 tpl = PT.create_template(;
     system = """You are un unworldly AI assistant.
 
@@ -18,10 +19,10 @@ Where a detail is missing, make a guess informed by the user inputs but ensure i
 If the provided file does not exist, create it. 
 If the file does exist, provide a row-based difference view of the changes that need to be made.
 Mark any changes with the unified diff format.
-Mark any removed line with a minus (`-`) in front of the line.
-Mark any added line with a plus (`+`) in front of the new line.
+Mark any removed line with a minus (`- `) in front of the line.
+Mark any added line with a plus (`+ `) in front of the new line.
 Any edit to a line, is a removal followed by an addition. 
-Mark any edited line with a minus (`-`) in front of the original line, followed by the new line with a plus (`+`) in front of it.
+Mark any edited line with a minus (`- `) in front of the original line, followed by the new line with a plus (`+ `) in front of it.
 Group larger changes into a blocks of removed and added lines to make it easier to review.
 Return the updated file in tags <file name=\$file_name\$>\$file_content\$</file>, where \$file_name\$ is the name of the file and \$file_content\$ is the content of the file.
 All rows in the file must be marked with a plus or minus if they are added, or removed respectively.
@@ -43,16 +44,16 @@ Remember that compat lines must be sorted alphabetically.
 name = "PackageABC"
 uuid = "a3ab6ebc-8459-47fb-86fc-4adc6e671050"
 authors = ["J S <49557684+svilupp@users.noreply.github.com> and contributors"]
--version = "0.0.1-DEV"
-+version = "0.1.0"
+- version = "0.0.1-DEV"
++ version = "0.1.0"
 
 [deps]
 PromptingTools = "670122d1-24a8-4d70-bfce-740807c42192"
 
 [compat]
-+Aqua = "0.7"
-+PromptingTools = "0.40"
-+Test = "1"
++ Aqua = "0.7"
++ PromptingTools = "0.40"
++ Test = "1"
 julia = "1.10"
 
 [extras]
@@ -73,9 +74,7 @@ Package name: {{pkg_name}}
 Purpose: {{purpose}}
 </user_info>
 
-<user_files>
 {{user_files}}
-</user_files>
 
 Before you start, think through what are the common challenges people face when fulfilling this task. Enclose your thinking in <thinking></thinking> tags.
 Then, generate the new/updated file in <file name=\$file_name\$>\$file_content\$</file> tags.
@@ -86,7 +85,7 @@ Produce a valid full rewrite of the entire original file without skipping any li
 pkg_name = "LLMGuards.jl" # Base.current_project()
 purpose = "Make it easy to integrate LLMs in bigger systems by detecting, evaluating and guarding against bad data and behaviors."
 
-## Update README
+# # Update README
 task = """Update the provided README.md file with best in class information for what the package could be. 
 Highlight that the package in experimental stage and under development (use strong warning at the top)."""
 user_files = files_to_prompt(["README.md"])
@@ -94,6 +93,25 @@ user_files = files_to_prompt(["README.md"])
 conv = aigenerate(tpl; pkg_name, purpose, user_files, task,
     model = "claudes", return_all = true)
 conv |> PT.last_output
+
+## Apply the changes
+file_infos = extract_files_info(conv |> PT.last_output)
+
+## Create the files
+for (file_name, file_content) in file_infos
+    lines = detect_line_changes(file_content)
+    new_lines = apply_line_changes(lines)
+    write(file_name, join(new_lines, "\n"))
+end
+
+# # Write CONTRIBUTING.md
+task = """Write a CONTRIBUTING.md file with very barebone instructions to open Github Issues before opening a Pull Request. 
+Highlight that the package in experimental stage and under development (use strong warning at the top), so it might be to early to contribute."""
+user_files = files_to_prompt(nothing)
+
+conv = aigenerate(tpl; pkg_name, purpose, user_files, task,
+    model = "claudes", return_all = true)
+conv |> PT.last_output |> println
 
 ## Apply the changes
 file_infos = extract_files_info(conv |> PT.last_output)

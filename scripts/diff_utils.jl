@@ -23,6 +23,9 @@ function files_to_prompt(files::AbstractVector{<:AbstractString};
     println(io, end_tag)
     return String(take!(io))
 end
+function files_to_prompt(::Nothing; kwargs...)
+    return ""
+end
 
 """
     extract_files_info(s::AbstractString)
