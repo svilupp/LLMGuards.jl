@@ -23,6 +23,7 @@ function files_to_prompt(files::AbstractVector{<:AbstractString};
     println(io, end_tag)
     return String(take!(io))
 end
+files_to_prompt(file::AbstractString) = files_to_prompt([file])
 function files_to_prompt(::Nothing; kwargs...)
     return ""
 end

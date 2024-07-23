@@ -1,5 +1,6 @@
 # Inspired by https://www.cursor.com/blog/instant-apply
 
+using Pkg
 using PromptingTools
 const PT = PromptingTools
 include("diff_utils.jl")
@@ -108,6 +109,37 @@ end
 task = """Write a CONTRIBUTING.md file with very barebone instructions to open Github Issues before opening a Pull Request. 
 Highlight that the package in experimental stage and under development (use strong warning at the top), so it might be to early to contribute."""
 user_files = files_to_prompt(nothing)
+
+conv = aigenerate(tpl; pkg_name, purpose, user_files, task,
+    model = "claudes", return_all = true)
+conv |> PT.last_output |> println
+
+## Apply the changes
+file_infos = extract_files_info(conv |> PT.last_output)
+
+## Create the files
+for (file_name, file_content) in file_infos
+    lines = detect_line_changes(file_content)
+    new_lines = apply_line_changes(lines)
+    write(file_name, join(new_lines, "\n"))
+end
+
+# # Update Compat bounds based on Manifest
+manifest = let io = IOBuffer()
+    Pkg.status(mode = Pkg.PKGMODE_MANIFEST, io = io)
+    String(take!(io))
+end
+task = """Update Project.toml with the compat bounds for all explicitly mentioned packages (including extras and extensions).
+Do not add any new packages. 
+Only update the relevant compat bounds. 
+Ensure that compat bounds are sorted alphabetically.
+
+Current Manifest.toml of all packages uses:
+<package manifest>
+$manifest
+</package manifest>
+"""
+user_files = files_to_prompt("Project.toml")
 
 conv = aigenerate(tpl; pkg_name, purpose, user_files, task,
     model = "claudes", return_all = true)
