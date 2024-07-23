@@ -5,6 +5,7 @@ version = "0.0.1-DEV"
 
 [deps]
 PromptingTools = "670122d1-24a8-4d70-bfce-740807c42192"
+Sentencize = "7dcf698f-69e3-471c-af7e-711815da818c"
 
 [compat]
 Aqua = "0.7"

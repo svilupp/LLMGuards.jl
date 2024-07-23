@@ -1,5 +1,6 @@
 using PromptingTools
 const PT = PromptingTools
+using LLMGuards
 
 tpl = PT.create_template(;
     system = """You are un unworldly AI judge trained for NLI (Natural Language Inference) task. 
@@ -65,12 +66,13 @@ text = """
   International cooperation is crucial in tackling this global challenge. The Paris Agreement, adopted in 2015, aims to limit global temperature increase to well below 2 degrees Celsius above pre-industrial levels. However, many scientists argue that even more ambitious action is needed to avoid the worst impacts of climate change.
   Individuals can also play a role in combating climate change through lifestyle choices such as reducing energy consumption, using sustainable transportation, and adopting plant-based diets. Education and awareness-raising are vital in mobilizing public support for climate action and encouraging sustainable practices at all levels of society.
   """
-summary = """
+summary_text = """
   Climate change is caused solely by natural variations in the Earth's orbit.
   Rising global temperatures have led to more frequent and intense extreme weather events in many regions.
   The Paris Agreement aims to limit global temperature increase to exactly 1.5 degrees Celsius above pre-industrial levels.
   Adaptation strategies for climate change include developing drought-resistant crops.
   Climate change has no impact on biodiversity or ecosystems.
   """
-output = ["C", "E", "N", "E", "C"]
+hypotheses = split_sentence(summary_text)
+labels = ["C", "E", "N", "E", "C"]
 conv = aigenerate(tpl; model = "gpt4om")
