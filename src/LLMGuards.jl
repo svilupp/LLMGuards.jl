@@ -1,6 +1,9 @@
 module LLMGuards
 
+using PromptingTools
+const PT = PromptingTools
 using Sentencize
+using Statistics: mean
 
 # re-export
 export split_sentence
@@ -10,6 +13,8 @@ include("utils.jl")
 
 include("types.jl")
 
+export PassageNLI, SentenceNLI, JudgementNLI, Judgement
+export analyze, faithfulness_report
 include("nli.jl")
 
 function __init__()

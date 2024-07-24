@@ -6,10 +6,11 @@ version = "0.0.1-DEV"
 [deps]
 PromptingTools = "670122d1-24a8-4d70-bfce-740807c42192"
 Sentencize = "7dcf698f-69e3-471c-af7e-711815da818c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 Aqua = "0.7"
-PromptingTools = "0.40"
+PromptingTools = "0.43"
 Test = "<0.0.1, 1"
 julia = "1.10"
 

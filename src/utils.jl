@@ -1,4 +1,37 @@
 """
+    extract_quotes(text::AbstractString)
+
+Extracts quotes from a given text. Useful to extract quotes from the explanation of a NLI judgement.
+"""
+function extract_quotes(text::AbstractString)
+    pattern = r"[\"'](.+?)[\"']"
+    matches = eachmatch(pattern, text)
+    isempty(matches) && return SubString{eltype(text)}[]
+    return [m.captures[1] for m in matches]
+end
+
+"""
+    detect_quote_source(
+        quotes::AbstractVector{<:AbstractString}, sources::AbstractVector{<:AbstractString}; max_distance::Real = 0.3)
+
+Detects the source of a quote based on the (average) largest common subsequence. If there are multiple quotes, it returns the source of the quote with the smallest average distance.
+
+Returns: A tuple of the distance and index of the "closest" source. If the distance is greater than `max_distance`, it returns `nothing`.
+"""
+function detect_quote_source(
+        quotes::AbstractVector{<:AbstractString}, sources::AbstractVector{<:AbstractString}; max_distance::Real = 0.3)
+    isempty(quotes) && return nothing
+    isempty(sources) && return nothing
+    dists = mean([PT.distance_longest_common_subsequence(q, sources) for q in quotes])
+    val, idx = findmin(dists)
+    if val > max_distance
+        return val, nothing
+    else
+        return val, idx
+    end
+end
+
+"""
     split_into_code_and_sentences(input::Union{String, SubString{String}})
 
 Splits text block into code or text and sub-splits into units.
