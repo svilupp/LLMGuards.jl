@@ -9,7 +9,7 @@
     references::Vector{AbstractString} = AbstractString[]
     source_idx::Union{Int, Nothing} = nothing
 end
-function show(io::IO, sent::SentenceNLI)
+function Base.show(io::IO, sent::SentenceNLI)
     dump(io, sent; maxdepth = 1)
 end
 
@@ -28,7 +28,7 @@ A struct to store the results of NLI analysis for a given `passage` against a se
     passage::AbstractString
     sentences::Vector{SentenceNLI}
 end
-function show(io::IO, passage::PassageNLI)
+function Base.show(io::IO, passage::PassageNLI)
     dump(io, passage; maxdepth = 1)
 end
 
@@ -37,7 +37,7 @@ end
     explanation::String
     judgement::Judgement
 end
-function show(io::IO, judg::JudgementNLI)
+function Base.show(io::IO, judg::JudgementNLI)
     dump(io, judg; maxdepth = 1)
 end
 
@@ -45,7 +45,6 @@ end
 """
     analyze(::Type{PassageNLI}, answer::AbstractString,
         sources::AbstractVector{<:AbstractString}; model::AbstractString = "gpt4om", verbose::Integer = 1)
-        sources::AbstractVector{<:AbstractString}; model::AbstractString = "gpt4om")
 
 Runs NLI analysis for a given `answer` against a set of `sources`.
 
@@ -56,17 +55,20 @@ function analyze(::Type{PassageNLI}, answer::AbstractString,
     premise = join(sources, "\n---\n")
     hypotheses = split_sentence(answer) |> x -> filter(!isempty, x)
     cost_tracker = Threads.Atomic{Float64}(0.0)
+    tok_tracker = Threads.Atomic{Int}(0)
     judgements = asyncmap(hypotheses) do hypothesis
         msg = aiextract(:NLIHypothesisExtractLabel4Shot; premise, hypothesis,
             model, return_type = JudgementNLI, verbose = (verbose - 1) > 0)
         Threads.atomic_add!(cost_tracker, msg.cost)
+        Threads.atomic_add!(tok_tracker, sum(msg.tokens))
         PT.last_output(msg)
     end
     sentences = SentenceNLI[]
     for i in eachindex(hypotheses, judgements)
         ## Prepare safer parsing
         (; explanation, judgement) = judgements[i]
-        references = extract_quotes(explanation)
+        references = isnothing(explanation) || isempty(explanation) ? String[] :
+                     extract_quotes(explanation)
         val, source_idx = detect_quote_source(references, sources)
         push!(sentences,
             SentenceNLI(hypotheses[i], explanation, judgement, references, source_idx))
@@ -74,7 +76,7 @@ function analyze(::Type{PassageNLI}, answer::AbstractString,
 
     passage_nli = PassageNLI(sources, answer, sentences)
     (verbose >= 1) &&
-        @info "NLI analysis complete (cost: \$$(round(cost_tracker[]; digits = 2)))"
+        @info "NLI analysis complete (tokens: $(tok_tracker[]), cost: \$$(round(cost_tracker[]; digits = 2)))"
 
     return passage_nli
 end

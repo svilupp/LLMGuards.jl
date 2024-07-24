@@ -6,7 +6,7 @@ Extracts quotes from a given text. Useful to extract quotes from the explanation
 function extract_quotes(text::AbstractString)
     pattern = r"[\"'](.+?)[\"']"
     matches = eachmatch(pattern, text)
-    isempty(matches) && return SubString{eltype(text)}[]
+    isempty(matches) && return SubString{String}[]
     return [m.captures[1] for m in matches]
 end
 

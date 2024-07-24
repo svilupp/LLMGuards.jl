@@ -2,6 +2,8 @@ module LLMGuards
 
 using PromptingTools
 const PT = PromptingTools
+using PromptingTools.Experimental.RAGTools
+const RT = RAGTools
 using Sentencize
 using Statistics: mean
 
@@ -16,6 +18,9 @@ include("types.jl")
 export PassageNLI, SentenceNLI, JudgementNLI, Judgement
 export analyze, faithfulness_report
 include("nli.jl")
+
+export report
+include("defaults.jl")
 
 function __init__()
     ## Auto template loading
