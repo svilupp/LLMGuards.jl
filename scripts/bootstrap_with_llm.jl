@@ -25,6 +25,9 @@ Mark any added line with a plus (`+ `) in front of the new line.
 Any edit to a line, is a removal followed by an addition. 
 Mark any edited line with a minus (`- `) in front of the original line, followed by the new line with a plus (`+ `) in front of it.
 Group larger changes into a blocks of removed and added lines to make it easier to review.
+For large files, you do not need to repeat all lines if there are no changes at all.
+HOWEVER, if you add a NEW line, you must include at least one preceding line to understand the location of this change.
+If there are several repeated lines, you must list ALL of them to ensure proper handling.
 Return the updated file in tags <file name=\$file_name\$>\$file_content\$</file>, where \$file_name\$ is the name of the file and \$file_content\$ is the content of the file.
 All rows in the file must be marked with a plus or minus if they are added, or removed respectively.
 Do not make any unrelated changes to the file.
@@ -100,9 +103,8 @@ file_infos = extract_files_info(conv |> PT.last_output)
 
 ## Create the files
 for (file_name, file_content) in file_infos
-    lines = detect_line_changes(file_content)
-    new_lines = apply_line_changes(lines)
-    write(file_name, join(new_lines, "\n"))
+    @info "Working on $file_name"
+    write(FileEdit(file_name, file_content))
 end
 
 # # Write CONTRIBUTING.md
@@ -119,9 +121,8 @@ file_infos = extract_files_info(conv |> PT.last_output)
 
 ## Create the files
 for (file_name, file_content) in file_infos
-    lines = detect_line_changes(file_content)
-    new_lines = apply_line_changes(lines)
-    write(file_name, join(new_lines, "\n"))
+    @info "Working on $file_name"
+    write(FileEdit(file_name, file_content))
 end
 
 # # Update Compat bounds based on Manifest
@@ -150,7 +151,8 @@ file_infos = extract_files_info(conv |> PT.last_output)
 
 ## Create the files
 for (file_name, file_content) in file_infos
-    lines = detect_line_changes(file_content)
-    new_lines = apply_line_changes(lines)
-    write(file_name, join(new_lines, "\n"))
+    @info "Working on $file_name"
+    write(FileEdit(file_name, file_content))
 end
+
+# # Migrate the package to a new Name and UUID
