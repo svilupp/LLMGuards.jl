@@ -168,7 +168,27 @@ function prune_line_edits(lines::AbstractVector{<:LineEdit})
         if edit_type(line) != NOCHANGE
             # If there's a change, add the previous unchanged line (if any) as an anchor
             if last_change_index < i - 1
-                push!(pruned_lines, lines[i - 1])
+                if !isempty(strip(lines[i - 1].content))
+                    ## This is a good anchor (not empty)
+                    push!(pruned_lines, lines[i - 1])
+                else
+                    ## This is a bad anchor (empty), try to find an earlier better anchor
+                    # Scan back to find a non-empty line as an anchor
+                    anchor_index = nothing
+                    for k in (i - 2):-1:max(1, last_change_index + 1)
+                        if !isempty(strip(lines[k].content))
+                            anchor_index = k
+                            break
+                        end
+                    end
+                    if !isnothing(anchor_index)
+                        # Append all lines from anchor up to the previous line
+                        append!(pruned_lines, lines[anchor_index:(i - 1)])
+                    else
+                        ## No good anchor found, append at least the empty line
+                        push!(pruned_lines, lines[i - 1])
+                    end
+                end
             end
             push!(pruned_lines, line)
             last_change_index = i
@@ -232,11 +252,13 @@ pruned_lines = prune_line_edits(new_lines)
 merged_lines = merge_line_edits(orig_lines, pruned_lines)
 final_lines = apply_line_edits(merged_lines)
 
-function FileEdit(path::AbstractString, new_text::AbstractString; verbose::Bool = true)
+function FileEdit(path::AbstractString, new_text::AbstractString;
+        verbose::Bool = true, prune::Bool = true)
     verbose && isfile(path) && @info "File $path does not exist, will create a new file."
     orig_lines = LineEdit.(split(read(path, String), '\n'))
     new_lines = detect_line_edit.(split(new_text, '\n'))
-    pruned_lines = prune_line_edits(new_lines)
+    ## Decide whether to prune
+    pruned_lines = prune ? prune_line_edits(new_lines) : new_lines
     merged_lines = merge_line_edits(orig_lines, pruned_lines)
     final_lines = apply_line_edits(merged_lines)
     return FileEdit(path, final_lines)
@@ -251,4 +273,12 @@ function Base.write(file_edit::FileEdit)
 end
 # write(FileEdit("mock.toml", s2))
 
+"""
+    apply_line_edits(file_edit::FileEdit)
+
+Write the updated lines to the specific file path defined in `file_edit`.
+"""
+function apply_line_edits(file_edit::FileEdit)
+    Base.write(file_edit)
+end
 ;
