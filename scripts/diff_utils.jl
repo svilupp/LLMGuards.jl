@@ -6,6 +6,15 @@
 end
 edit_type(line::LineEdit) = line.edit_type
 edit_type(line::AbstractString) = NOCHANGE
+function edit_color(line::LineEdit)
+    if edit_type(line) == ADD
+        return :green
+    elseif edit_type(line) == REMOVE
+        return :red
+    else
+        return :normal
+    end
+end
 
 function LineEdit(line::AbstractString)
     return LineEdit(line, edit_type(line))
@@ -254,19 +263,23 @@ final_lines = apply_line_edits(merged_lines)
 
 function FileEdit(path::AbstractString, new_text::AbstractString;
         verbose::Bool = true, prune::Bool = true)
-    verbose && isfile(path) && @info "File $path does not exist, will create a new file."
-    orig_lines = LineEdit.(split(read(path, String), '\n'))
+    orig_lines = if isfile(path)
+        LineEdit.(split(read(path, String), '\n'))
+    else
+        verbose && @info "File $path does not exist, will create a new file."
+        LineEdit[]
+    end
     new_lines = detect_line_edit.(split(new_text, '\n'))
     ## Decide whether to prune
     pruned_lines = prune ? prune_line_edits(new_lines) : new_lines
     merged_lines = merge_line_edits(orig_lines, pruned_lines)
-    final_lines = apply_line_edits(merged_lines)
-    return FileEdit(path, final_lines)
+    return FileEdit(path, merged_lines)
 end
 function Base.write(file_edit::FileEdit)
     (; path, lines) = file_edit
+    final_lines = apply_line_edits(lines)
     open(path, "w") do io
-        for line in lines
+        for line in final_lines
             write(io, line.content, "\n")
         end
     end
@@ -281,6 +294,34 @@ Write the updated lines to the specific file path defined in `file_edit`.
 function apply_line_edits(file_edit::FileEdit)
     Base.write(file_edit)
 end
-;
+# file_edit = FileEdit("mock.toml", s2);
+# apply_line_edits(file_edit)
 
-## TODO: add highlight of edits in show / preview
+"""
+    show_diff(io, file_edit::FileEdit)
+
+Highlight the changed lines in the file in the provided IO stream.
+
+# Markup Legend
+- Add `+ ` for added lines and highlight in GREEN
+- Remove `-` for removed lines and highlight in RED
+- No change for lines "edit_type=NOCHANGE"
+
+"""
+function show_diff(io, file_edit::FileEdit)
+    (; path, lines) = file_edit
+    printstyled(io, "Diff Report\n", bold = true)
+    printstyled(io, "File: $path\n", italic = true)
+    print(io, "-"^20)
+    for line in lines
+        println(io)
+        prefix = edit_type(line) == ADD ? "+ " : edit_type(line) == REMOVE ? "- " : ""
+        printstyled(io, prefix * line.content, color = edit_color(line))
+    end
+    println(io, "-"^20)
+    return nothing
+end
+show_diff(file_edit::FileEdit) = show_diff(stdout, file_edit)
+;
+file_edit = FileEdit("mock.toml", merged_lines)
+show_diff(file_edit);
