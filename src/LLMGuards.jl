@@ -16,7 +16,7 @@ include("utils.jl")
 include("types.jl")
 
 export PassageNLI, SentenceNLI, JudgementNLI, Judgement
-export analyze, faithfulness_report
+export analyze, faithfulness_report, highlight
 include("nli.jl")
 
 export report

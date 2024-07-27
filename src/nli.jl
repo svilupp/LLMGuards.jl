@@ -100,6 +100,41 @@ function faithfulness_report(io::IO, passage::PassageNLI; detailed::Bool = false
         "- Neutral hypotheses: $(join(labels[N], ", "))", "\n")
     return nothing
 end
-function faithfulness_report(passage::PassageNLI; kwargs...)
-    return faithfulness_report(stdout, passage; kwargs...)
+
+function highlight(io::IO, passage::PassageNLI; kwargs...)
+    current_idx = 1
+    for sent in passage.sentences
+        (; sentence, explanation, nli, references, source_idx) = sent
+
+        # Find the start of the current sentence in the passage
+        start_idx = findnext(sentence, passage.passage, current_idx)
+
+        if !isnothing(start_idx)
+            # Print any text between the last sentence and this one
+            if start_idx.start > current_idx
+                end_idx = prevind(passage.passage, start_idx.start, 1)
+                print(io, passage.passage[current_idx:end_idx])
+            end
+
+            # Print the sentence
+            color = nli == E ? :normal : nli == N ? :yellow : :red
+            printstyled(io, sentence, color = color)
+
+            # Update the passage index
+            current_idx = nextind(passage.passage, start_idx.stop, 1)
+        else
+            # If the sentence is not found, just print it
+            print(io, sentence)
+        end
+    end
+
+    # Print any remaining text in the passage
+    if current_idx <= length(passage.passage)
+        print(io, passage.passage[current_idx:end])
+    end
+    println(io)
+    return nothing
+end
+function highlight(passage::PassageNLI; kwargs...)
+    return highlight(stdout, passage; kwargs...)
 end
