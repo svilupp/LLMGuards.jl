@@ -233,4 +233,4 @@ highlight(stdout, unig; unit = :sentence, proba_red = 0.03)
 highlight(stdout, unig; unit = :word, proba_red = 0.02)
 
 # add embeddings distances
-# add word-level highlights
+# Embedding consistency check - sentence levels at one shot

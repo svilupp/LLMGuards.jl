@@ -282,3 +282,5 @@ function apply_line_edits(file_edit::FileEdit)
     Base.write(file_edit)
 end
 ;
+
+## TODO: add highlight of edits in show / preview
